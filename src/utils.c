@@ -7,14 +7,14 @@ void normalize_string(const char *input, char *output) {
   char temp[200];
   int i = 0;
 
-  // 1. Pasar todo a minúsculas
+  // Passar tot a minúscules
   while (input[i] != '\0' && i < 199) {
     temp[i] = tolower((unsigned char)input[i]);
     i++;
   }
   temp[i] = '\0';
 
-  // 2. Expandir abreviaturas comunes al principio del string
+  // Expandir abreviatures
   if (strncmp(temp, "c. ", 3) == 0) {
     sprintf(output, "carrer %s", temp + 3);
   } else if (strncmp(temp, "av. ", 4) == 0) {
@@ -29,8 +29,7 @@ void normalize_string(const char *input, char *output) {
 int levenshtein(const char *s1, const char *s2) {
   int m = strlen(s1);
   int n = strlen(s2);
-  int d[150][150]; // Matriz estática (asumimos textos de < 150 caracteres)
-
+  int d[150][150]; // Matriu estàtica
   for (int i = 0; i <= m; i++)
     d[i][0] = i;
   for (int j = 0; j <= n; j++)
