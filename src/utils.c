@@ -30,11 +30,12 @@ int levenshtein(const char *s1, const char *s2) {
   int m = strlen(s1);
   int n = strlen(s2);
   int d[150][150]; // Matriu estàtica
-  for (int i = 0; i <= m; i++)
-    d[i][0] = i;
-  for (int j = 0; j <= n; j++)
-    d[0][j] = j;
 
+  // Omplir primera fila i columna
+  for (int i = 0; i <= m; i++) d[i][0] = i;
+  for (int j = 0; j <= n; j++) d[0][j] = j;
+
+  // Calcular distàncies
   for (int i = 1; i <= m; i++) {
     for (int j = 1; j <= n; j++) {
       int cost = (s1[i - 1] == s2[j - 1]) ? 0 : 1;
@@ -46,5 +47,5 @@ int levenshtein(const char *s1, const char *s2) {
       d[i][j] = min < sub ? min : sub;
     }
   }
-  return d[m][n];
+  return d[m][n]; // Retornem el cost mínim
 }
