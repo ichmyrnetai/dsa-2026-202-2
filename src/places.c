@@ -49,7 +49,7 @@ Place *load_places(const char *map_name) {
 }
 
 // Buscar lloc (LAB 3)
-void search_place(Place *head, const char *search_name) {
+Place *search_place(Place *head, const char *search_name) {
     char norm_search[200];
     normalize_string(search_name, norm_search);
 
@@ -65,7 +65,7 @@ void search_place(Place *head, const char *search_name) {
         // Coincidència exacta
         if (strcmp(norm_current, norm_search) == 0) {
             printf("\n    Found at (%f, %f)\n", current->lat, current->lon);
-            return;
+            return current;
         }
         
         // Calcular Levenshtein per suggeriments
@@ -83,4 +83,5 @@ void search_place(Place *head, const char *search_name) {
     if (min_dist < 15) {
         printf("    Did you mean: '%s'?\n", suggestion);
     }
+    return NULL;
 }

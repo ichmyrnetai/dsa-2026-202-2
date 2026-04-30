@@ -1,6 +1,8 @@
 #include "houses.h"
 #include "places.h"
 #include "utils.h"
+#include "position.h"
+#include "streets.h"
 #include "sample_lib.h"
 #include <dirent.h>
 #include <stdio.h>
@@ -13,8 +15,6 @@ void createaleak() {
 }
 
 int main() {
-  printf("*****************\nWelcome to DSA!\n*****************\n");
-
   char map_name[50];
   int origin_option;
 
@@ -29,6 +29,15 @@ int main() {
   // Carregar llocs
   Place *places_list = load_places(map_name);
   if (places_list == NULL) return 1; 
+
+  // Carregar carrers
+  int streets_count = 0;
+  Street *streets_list = load_streets(map_name, &streets_count);
+  if (streets_list == NULL) return 1;
+  printf("%d streets loaded\n", streets_count);
+
+  Position origin_pos;
+  int found_origin = 0;
 
   // Mostrar menú
   printf("\n--- ORIGIN ---\n");
@@ -56,20 +65,43 @@ int main() {
     scanf("%d", &house_number);
 
     // Buscar adreça (crida a houses.c)
-    search_address(houses_list, street_name, house_number);
+    House *found = search_address(houses_list, street_name, house_number);
+    if (found != NULL) {
+        origin_pos.lat = found->lat;
+        origin_pos.lon = found->lon;
+        found_origin = 1;
+    }
   } 
   else if (origin_option == 2) {
     char place_name[100];
     
     // Demanar lloc
-    printf("Enter place name (e.g. \"Universitat Pompeu Fabra–Campus del Poblenou\"): ");
+    printf("Enter place name (e.g. \"Universitat Pompeu Fabra-Campus del Poblenou\" or \"L'Illa Diagonal\"): ");
     scanf("%99[^\n]", place_name); 
 
     // Buscar lloc (crida a places.c)
-    search_place(places_list, place_name);
+    Place *found = search_place(places_list, place_name);
+    if (found != NULL) {
+        origin_pos.lat = found->lat;
+        origin_pos.lon = found->lon;
+        found_origin = 1;
+    }
   } 
   else {
     printf("Invalid option.\n");
+  }
+
+  // Mostrar carrer més proper i connexions
+  if (found_origin) {
+      Street* closest = find_closest_street(streets_list, origin_pos);
+      if (closest) {
+          printf("    Closest street: %s\n", closest->name);
+          printf("    Between %lld (%f, %f) and %lld (%f, %f)\n\n",
+                 closest->from_id, closest->from_pos.lat, closest->from_pos.lon,
+                 closest->to_id, closest->to_pos.lat, closest->to_pos.lon);
+          
+          print_connected_streets(streets_list, closest);
+      }
   }
 
   return 0;

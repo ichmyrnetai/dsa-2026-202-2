@@ -12,6 +12,6 @@ typedef struct House {
 
 // Declaració de funcions
 House *load_houses(const char *map_name);
-void search_address(House* head, const char* street_name, int number);
+House *search_address(House* head, const char* street_name, int number);
 
 #endif

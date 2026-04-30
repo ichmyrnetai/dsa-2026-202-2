@@ -48,7 +48,7 @@ House *load_houses(const char *map_name) {
 }
 
 // Buscar adreça (LAB 2)
-void search_address(House *head, const char *search_street, int search_number) {
+House *search_address(House *head, const char *search_street, int search_number) {
     char norm_search[200];
     normalize_string(search_street, norm_search);
 
@@ -69,7 +69,7 @@ void search_address(House *head, const char *search_street, int search_number) {
             // Si també coincideix el número
             if (current->house_number == search_number) {
                 printf("\n    Found at (%f, %f)\n", current->lat, current->lon);
-                return;
+                return current;
             }
         } 
         // Si no coincideix el carrer, buscar suggeriments
@@ -92,4 +92,5 @@ void search_address(House *head, const char *search_street, int search_number) {
             printf("    Did you mean: '%s'?\n", suggestion);
         }
     }
+    return NULL;
 }

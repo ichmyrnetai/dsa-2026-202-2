@@ -13,6 +13,6 @@ typedef struct Place {
 
 // Declaració de funcions
 Place *load_places(const char *map_name);
-void search_place(Place* head, const char* search_name);
+Place *search_place(Place* head, const char* search_name);
 
 #endif
