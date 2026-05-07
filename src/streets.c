@@ -158,4 +158,141 @@ void print_connected_streets(Street* head, Street* current) {
         }
         curr1 = curr1->next;
     }
+} 
+// Mòdul ID entre mida de la taula
+unsigned int hash_function(long long id) {
+    return (unsigned int)(id % HASH_SIZE);
+}
+
+// Crear una taula Hash buida
+HashNode** create_hash_map() {
+    HashNode** hash_map = malloc(HASH_SIZE * sizeof(HashNode*));
+    for (int i = 0; i < HASH_SIZE; i++) {
+        hash_map[i] = NULL;
+    }
+    return hash_map;
+}
+
+// Inserir un carrer al Hash Map
+void insert_to_hash_map(HashNode** hash_map, long long intersection_id, Street* street) {
+    unsigned int index = hash_function(intersection_id);
+    
+    // Buscar si la intersecció ja existeix a la llista d'aquest index
+    HashNode* curr = hash_map[index];
+    while (curr != NULL) {
+        if (curr->intersection_id == intersection_id) {
+            // La intersecció existeix, afegim el carrer a la seva llista local
+            // Fem una còpia del carrer per no trencar la llista original
+            Street* new_s = malloc(sizeof(Street));
+            *new_s = *street; 
+            new_s->next = curr->connected_streets;
+            curr->connected_streets = new_s;
+            return;
+        }
+        curr = curr->next;
+    }
+
+    // Si la intersecció no existeix, creem un nou node per al Hash Map
+    HashNode* new_node = malloc(sizeof(HashNode));
+    new_node->intersection_id = intersection_id;
+    
+    // Creem la primera còpia del carrer per aquesta intersecció
+    Street* new_s = malloc(sizeof(Street));
+    *new_s = *street;
+    new_s->next = NULL;
+    new_node->connected_streets = new_s;
+    
+    // L'afegim a la taula Hash
+    new_node->next = hash_map[index];
+    hash_map[index] = new_node;
+}
+
+// Construir el Hash Map a partir de la llista de carrers
+HashNode** build_intersection_graph(Street* streets_list) {
+    HashNode** hash_map = create_hash_map();
+    Street* curr = streets_list;
+    
+    while (curr != NULL) {
+        insert_to_hash_map(hash_map, curr->from_id, curr);
+        curr = curr->next;
+    }
+    return hash_map;
+}
+
+// Funció ràpida
+void print_connected_streets_fast(HashNode** hash_map, Street* current) {
+    printf("    From this street segment, you can go to:\n");
+    
+    // Busquem l'ID on acaba el nostre carrer directament al Hash Map
+    unsigned int index = hash_function(current->to_id);
+    HashNode* node_l1 = hash_map[index];
+    
+    // Trobar la intersecció exacta 
+    while (node_l1 != NULL && node_l1->intersection_id != current->to_id) {
+        node_l1 = node_l1->next;
+    }
+
+    if (node_l1 == NULL) return; // Si no hi ha res connectat, acabem
+
+    char printed_l1[10][100];
+    int count_l1 = 0;
+
+    // Recorrem els carrers que surten d'aquí
+    Street* curr1 = node_l1->connected_streets;
+    while (curr1) {
+        int already_printed_l1 = 0;
+        for (int i = 0; i < count_l1; i++) {
+            if (strcmp(printed_l1[i], curr1->name) == 0) {
+                already_printed_l1 = 1; break;
+            }
+        }
+        
+        if (!already_printed_l1) {
+            printf("    - %s\n", curr1->name);
+            strcpy(printed_l1[count_l1++], curr1->name);
+            
+            // Busquem les connexions del següent carrer
+            unsigned int index2 = hash_function(curr1->to_id);
+            HashNode* node_l2 = hash_map[index2];
+            
+            while (node_l2 != NULL && node_l2->intersection_id != curr1->to_id) {
+                node_l2 = node_l2->next;
+            }
+
+            if (node_l2 != NULL) {
+                int has_cross = 0;
+                Street* temp = node_l2->connected_streets;
+                while (temp) {
+                    if (strcmp(temp->name, curr1->name) != 0) {
+                        has_cross = 1; break;
+                    }
+                    temp = temp->next;
+                }
+                
+                if (has_cross) {
+                    printf("        Which is connected to:\n");
+                    Street* curr2 = node_l2->connected_streets;
+                    char printed_l2[10][100];
+                    int count_l2 = 0;
+                    
+                    while (curr2) {
+                        if (strcmp(curr2->name, curr1->name) != 0) {
+                            int already_printed_l2 = 0;
+                            for (int i = 0; i < count_l2; i++) {
+                                if (strcmp(printed_l2[i], curr2->name) == 0) {
+                                    already_printed_l2 = 1; break;
+                                }
+                            }
+                            if (!already_printed_l2) {
+                                printf("         - %s\n", curr2->name);
+                                strcpy(printed_l2[count_l2++], curr2->name);
+                            }
+                        }
+                        curr2 = curr2->next;
+                    }
+                }
+            }
+        }
+        curr1 = curr1->next;
+    }
 }

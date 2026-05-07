@@ -36,6 +36,9 @@ int main() {
   if (streets_list == NULL) return 1;
   printf("%d streets loaded\n", streets_count);
 
+  // AFEGIT LAB 5: Construir el Graf (Hash Map)
+  HashNode** intersection_graph = build_intersection_graph(streets_list);
+
   Position origin_pos;
   int found_origin = 0;
 
@@ -100,7 +103,8 @@ int main() {
                  closest->from_id, closest->from_pos.lat, closest->from_pos.lon,
                  closest->to_id, closest->to_pos.lat, closest->to_pos.lon);
           
-          print_connected_streets(streets_list, closest);
+          // Aquí cridem a la funció usant el Hash Map
+          print_connected_streets_fast(intersection_graph, closest);
       }
   }
 
