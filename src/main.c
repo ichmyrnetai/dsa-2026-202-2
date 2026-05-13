@@ -17,6 +17,7 @@ void createaleak() {
 int main() {
   char map_name[50];
   int origin_option;
+  int dest_option;
 
   // Demanar el nom del mapa
   printf("Enter map name (e.g. 'xs_2' or 'xl_1'): ");
@@ -36,13 +37,15 @@ int main() {
   if (streets_list == NULL) return 1;
   printf("%d streets loaded\n", streets_count);
 
-  // AFEGIT LAB 5: Construir el Graf (Hash Map)
+  // Construir el Graf (Hash Map)
   HashNode** intersection_graph = build_intersection_graph(streets_list);
 
   Position origin_pos;
   int found_origin = 0;
+  Position dest_pos;
+  int found_dest = 0;
 
-  // Mostrar menú
+  // Mostrar menú origen
   printf("\n--- ORIGIN ---\n");
   printf("Where are you? Address (1), Place (2) or Coordinate (3)? ");
   scanf("%d", &origin_option);
@@ -51,7 +54,7 @@ int main() {
   int c;
   while ((c = getchar()) != '\n' && c != EOF);
 
-  // Gestionar opcions
+  // Gestionar opcions origen
   if (origin_option == 3) {
     printf("Not implemented yet\n");
   } 
@@ -94,7 +97,7 @@ int main() {
     printf("Invalid option.\n");
   }
 
-  // Mostrar carrer més proper i connexions
+  // Mostrar carrer més proper i connexions (Origen)
   if (found_origin) {
       Street* closest = find_closest_street(streets_list, origin_pos);
       if (closest) {
@@ -105,6 +108,85 @@ int main() {
           
           // Aquí cridem a la funció usant el Hash Map
           print_connected_streets_fast(intersection_graph, closest);
+      }
+  }
+
+  // Mostrar menú destí
+  if (found_origin) {
+      printf("\n--- DESTINATION ---\n");
+      printf("Where do you want to go? Address (1), Place (2) or Coordinate (3)? ");
+      scanf("%d", &dest_option);
+
+      // Netejar buffer
+      while ((c = getchar()) != '\n' && c != EOF);
+
+      // Gestionar opcions destí
+      if (dest_option == 3) {
+        printf("Not implemented yet\n");
+      } 
+      else if (dest_option == 1) {
+        char street_name[100];
+        int house_number;
+
+        // Demanar carrer
+        printf("Enter street name (e.g. \"Carrer de Roc Boronat\"): ");
+        scanf("%99[^\n]", street_name);
+        
+        // Demanar número
+        printf("Enter street number (e.g. \"138\"): ");
+        scanf("%d", &house_number);
+
+        // Buscar adreça 
+        House *found = search_address(houses_list, street_name, house_number);
+        if (found) {
+            dest_pos.lat = found->lat;
+            dest_pos.lon = found->lon;
+            found_dest = 1;
+        }
+      } 
+      else if (dest_option == 2) {
+        char place_name[100];
+        
+        // Demanar lloc
+        printf("Enter place name (e.g. \"L'Illa Diagonal\"): ");
+        scanf("%99[^\n]", place_name); 
+
+        // Buscar lloc 
+        Place *found = search_place(places_list, place_name);
+        if (found) {
+            dest_pos.lat = found->lat;
+            dest_pos.lon = found->lon;
+            found_dest = 1;
+        }
+      } 
+      else {
+        printf("Invalid option.\n");
+      }
+
+      // Mostrar carrer més proper al destí
+      if (found_dest) {
+          Street* closest_dest = find_closest_street(streets_list, dest_pos);
+          if (closest_dest) {
+              printf("    Closest street: %s\n", closest_dest->name);
+              printf("    Between %lld (%f, %f) and %lld (%f, %f)\n\n",
+                     closest_dest->from_id, closest_dest->from_pos.lat, closest_dest->from_pos.lon,
+                     closest_dest->to_id, closest_dest->to_pos.lat, closest_dest->to_pos.lon);
+          }
+      }
+  }
+
+  // Ruta (Lab 6)
+  if (found_origin && found_dest) {
+      printf("\n--- ROUTE ---\n");
+      
+      Street* closest_origin = find_closest_street(streets_list, origin_pos);
+      Street* closest_dest = find_closest_street(streets_list, dest_pos);
+      
+      if (closest_origin && closest_dest) {
+          // Calculem i imprimim la ruta final
+          calculate_route(intersection_graph, closest_origin, closest_dest);
+      } else {
+          printf("  Error: No s'ha pogut calcular la ruta.\n");
       }
   }
 
