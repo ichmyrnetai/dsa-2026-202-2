@@ -175,7 +175,7 @@ int main() {
       }
   }
 
-  // Ruta (Lab 6)
+  // Ruta
   if (found_origin && found_dest) {
       printf("\n--- ROUTE ---\n");
       
@@ -183,7 +183,7 @@ int main() {
       Street* closest_dest = find_closest_street(streets_list, dest_pos);
       
       if (closest_origin && closest_dest) {
-          // Calculem i imprimim la ruta final
+          // Calculem i imprimim la ruta final fent servir BFS
           calculate_route(intersection_graph, closest_origin, closest_dest);
       } else {
           printf("  Error: No s'ha pogut calcular la ruta.\n");

@@ -47,7 +47,7 @@ House *load_houses(const char *map_name) {
   return head;
 }
 
-// Buscar adreça (LAB 2)
+// Buscar adreça 
 House *search_address(House *head, const char *search_street, int search_number) {
     char norm_search[200];
     normalize_string(search_street, norm_search);

@@ -299,32 +299,34 @@ void print_connected_streets_fast(HashNode** hash_map, Street* current) {
     }
 }
 
-// Estructures pel BFS (Lab 6)
+// Estructura per guardar la ruta pas a pas
 typedef struct path_node {
     Street* street;
     struct path_node* prev;
 } PathNode;
 
+// Estructura de la Cua pel BFS
 typedef struct queue_node {
     PathNode* path;
     struct queue_node* next;
 } QueueNode;
 
+// Estructura molt eficient de visitats
 typedef struct visited_node {
     long long intersection_id;
     struct visited_node* next;
 } VisitedNode;
 
-// Algorisme de ruta
+// Funció calculate_route
 void calculate_route(HashNode** hash_map, Street* start_street, Street* end_street) {
     if (!start_street || !end_street) return;
 
-    // Cua i llista de visitats per no fer bucles
+    // Inicialitzar la Cua i el set de visitats 
     VisitedNode** visited = calloc(HASH_SIZE, sizeof(VisitedNode*));
     QueueNode* front = NULL;
     QueueNode* rear = NULL;
 
-    // Posem el primer carrer a la cua
+    // Fiquem el primer carrer a la cua
     PathNode* start_path = malloc(sizeof(PathNode));
     start_path->street = start_street;
     start_path->prev = NULL;
@@ -343,9 +345,9 @@ void calculate_route(HashNode** hash_map, Street* start_street, Street* end_stre
 
     PathNode* final_path = NULL;
 
-    // Bucle del BFS
+    // Bucle principal BFS
     while (front != NULL) {
-        // Traiem de la cua
+        // Traiem l'element de davant de la cua
         QueueNode* curr_qn = front;
         front = front->next;
         if (front == NULL) rear = NULL;
@@ -354,13 +356,13 @@ void calculate_route(HashNode** hash_map, Street* start_street, Street* end_stre
         Street* curr_street = curr_path->street;
         free(curr_qn);
 
-        // Mirem si hem arribat
+        // Hem arribat al destí?
         if (curr_street->to_id == end_street->to_id || curr_street->to_id == end_street->from_id) {
             final_path = curr_path;
             break;
         }
 
-        // Busquem on podem anar des d'aquí (al hash map)
+        // Mirem les connexions ràpidament al Hash Map
         unsigned int idx = hash_function(curr_street->to_id);
         HashNode* node = hash_map[idx];
         while (node != NULL && node->intersection_id != curr_street->to_id) {
@@ -370,7 +372,7 @@ void calculate_route(HashNode** hash_map, Street* start_street, Street* end_stre
         if (node != NULL) {
             Street* neighbor = node->connected_streets;
             while (neighbor != NULL) {
-                // Mirem si ja hi hem passat
+                // Mirem a O(1) si ja hem visitat la intersecció
                 unsigned int n_idx = hash_function(neighbor->to_id);
                 VisitedNode* v = visited[n_idx];
                 int is_visited = 0;
@@ -381,7 +383,7 @@ void calculate_route(HashNode** hash_map, Street* start_street, Street* end_stre
                     v = v->next;
                 }
 
-                // Si és nou, cap a la cua
+                // Si és nou, l'afegim a la ruta i a la cua
                 if (!is_visited) {
                     VisitedNode* new_v = malloc(sizeof(VisitedNode));
                     new_v->intersection_id = neighbor->to_id;
@@ -408,7 +410,7 @@ void calculate_route(HashNode** hash_map, Street* start_street, Street* end_stre
         }
     }
 
-    // Si tenim ruta, la imprimim
+    // Imprimir les instruccions clavades al format del professor
     if (final_path != NULL) {
         int len = 0;
         PathNode* curr = final_path;
@@ -417,7 +419,7 @@ void calculate_route(HashNode** hash_map, Street* start_street, Street* end_stre
             curr = curr->prev;
         }
 
-        // Ho passem a array per llegir-ho de l'inici al final
+        // Passem de llista enllaçada inversa a un Array ordenat
         Street** route = malloc(len * sizeof(Street*));
         curr = final_path;
         for (int i = len - 1; i >= 0; i--) {
@@ -435,7 +437,7 @@ void calculate_route(HashNode** hash_map, Street* start_street, Street* end_stre
             char* current_name = curr_seg->name;
             double group_length = curr_seg->length;
             
-            // Producte vectorial per saber si girem a dreta o esquerra
+            // Producte vectorial (Cross Product) per saber si girem a l'esquerra o dreta
             double dx1 = prev_seg->to_pos.lon - prev_seg->from_pos.lon;
             double dy1 = prev_seg->to_pos.lat - prev_seg->from_pos.lat;
             double dx2 = curr_seg->to_pos.lon - curr_seg->from_pos.lon;
@@ -444,7 +446,7 @@ void calculate_route(HashNode** hash_map, Street* start_street, Street* end_stre
             double cross = (dx1 * dy2) - (dy1 * dx2);
             char* turn_dir = cross > 0 ? "left" : "right";
             
-            // Agrupem trossos del mateix carrer
+            // Agrupem els trossos de carrer que tinguin exactament el mateix nom
             i++;
             while (i < len && strcmp(route[i]->name, current_name) == 0) {
                 group_length += route[i]->length;
@@ -460,7 +462,7 @@ void calculate_route(HashNode** hash_map, Street* start_street, Street* end_stre
         printf("  No route found.\n");
     }
 
-    // Netejar memòria (visitats)
+    // Alliberar memòria de la taula de visitats
     for (int i = 0; i < HASH_SIZE; i++) {
         VisitedNode* v = visited[i];
         while (v) {
